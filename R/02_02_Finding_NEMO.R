@@ -1,0 +1,33 @@
+#This as an example of a bipartite network of interactions between anemones 
+#and several species of fish living within them in South-East Asia
+#Ollerton, J. et al. (2007) Finding NEMO: nestedness engendered by mutualistic 
+#organization in anemonefish and their hosts. 
+#Proceedings of the Royal Society B
+
+library(RCurl)
+#Downloads the edgelist network
+y <- getURL("https://raw.githubusercontent.com/mlurgi/networks_for_r/master/datasets/anemonefish.txt")
+
+#Transform the \n into new lines and the \t into spaces
+anemonef <- read.table(text = y)
+
+#Change the name of the columns from V1, V2, ..., V10 to A1, A2, ..., A10 
+names(anemonef) <- paste("A", 1:10, sep = "")
+
+#Change the name of columns from 1, 2, ..., 26 to F1, F2, ..., F26
+#Now the anemones and the fishes are explicit in the table
+row.names(anemonef) <- paste("F", 1:26, sep = "")       
+
+#Convert it to a matrix
+anemonef <- as.matrix(anemonef)
+
+### The number of fish species in the network is the number of rows
+n_fish <- dim(anemonef)[1]
+### The number of anemone species is the number of columns
+n_anemone <- dim(anemonef)[2]
+
+### So, the total number of species is the sum of these two quantities
+S <- n_fish + n_anemone
+
+### Whereas the total number of interactions is still the sum of the matrix
+L <- sum(anemonef)

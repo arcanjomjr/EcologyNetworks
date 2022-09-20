@@ -1,0 +1,27 @@
+{
+    "id": "F927C6CA",
+    "path": "~/Quantitative Biology Program/Scientific Computing/EcologyNetworks/R/01_Getting_Started.R",
+    "project_path": "R/01_Getting_Started.R",
+    "type": "r_source",
+    "hash": "1905748770",
+    "contents": "",
+    "dirty": false,
+    "created": 1663628037972.0,
+    "source_on_save": false,
+    "relative_order": 1,
+    "properties": {
+        "tempName": "Untitled2",
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "7,0",
+        "scrollLine": "0"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1663628298,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1663628298777,
+    "read_only": false,
+    "read_only_alternatives": []
+}

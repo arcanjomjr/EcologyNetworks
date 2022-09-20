@@ -1,0 +1,177 @@
+## Load igraph into workspace
+library(igraph)
+
+# I did not understood why require was used after library
+require(igraph)
+
+# A vector with ten species
+species <- 1:10
+# An object called network that will hold our graph
+# Initially it has only the vertices, the species vector
+network <- graph.empty() + vertices(species)
+
+#Link between species 5 and 7
+#More precisely 5 points to 7
+network[5,7] <- 1
+
+#Creates another 10 (or less) interactions between species
+for (i in 1:10) {
+  network[sample(1:10,1),sample(1:10,1)] <- 1
+}
+
+# Plotting your network
+plot(network)
+
+## Network analysis for Benguela's graph
+##
+
+library(RCurl)
+x <- getURL("https://raw.githubusercontent.com/mlurgi/networks_for_r/master/datasets/benguela.edgelist")
+benguela.EL <- read.table(text = x) 
+benguela.EL <- as.matrix(benguela.EL)
+
+# Create an adjacency matrix called benguela.AM, containing only zeros
+benguela.AM <- matrix(0, max(benguela.EL), max(benguela.EL))
+
+# Introduce ones to the matrix to represent interactions between species
+benguela.AM[benguela.EL] <- 1
+
+# Convert Benguela adjacency matrix to an igraph network
+benguela.network <- graph.adjacency(benguela.AM)
+
+# Plot the Benguela food web
+plot(benguela.network, edge.arrow.size = 0.2)
+
+# number of species
+S <- vcount(network)
+
+# number of interactions
+L <- ecount(network)
+
+# average number of interactions species
+L.S <- L/S
+
+#Conectance = Number of Edges/(Number of Vertices)^2
+#That is the number of edges divided by the number of possible edges
+
+# food web connectance
+C <- L/S^2
+
+# Calculate connectance
+connectance <- ecount(benguela.network) / vcount(benguela.network)^2 
+
+# Print connectance va
+print(paste0('Connectance of Benguela network =', round(connectance,2)))
+
+# Calculate number of links per species
+links.per.species <- ecount(benguela.network) / vcount(benguela.network)
+
+## Network analysis for Anemones-Fish network
+## using igraph library
+
+y <- ge/tURL("https://raw.githubusercontent.com/seblun/networks_datacamp/master/datasets/anemonefish.txt")
+anemonef <- read.table(text = y)
+names(anemonef) <- paste("A", 1:10, sep = "")
+row.names(anemonef) <- paste("F", 1:26, sep = "")       
+anemonef <- as.matrix(anemonef)
+
+# Calculate conectance of anemoref
+bipartite.connectance <- sum(anemonef) / (dim(anemonef)[1] * dim(anemonef)[2])
+
+anemonef.network <- graph_from_incidence_matrix(anemonef, directed = TRUE, mode = 'in')
+
+# Calculate conectance of anemoref
+# Conectance for bipartite graph is defined as 
+# (Number of Edges)/(Number of Vertcies in Component A * Number of Vertices in Component B)
+# Again, this is the number of edges divided by the total number of possible edges
+bipartite.connectance <- ecount(anemonef.network) / (sum(V(anemonef.network)$type) * (vcount(anemonef.network) - sum(V(anemonef.network)$type)) )
+
+# Average number of number of links per species
+sum(anemonef)/sum(dim(anemonef))
+
+# It can also be calculated using igraph
+ecount(anemonef.network)/vcount(anemonef.network)
+
+# Generality of A1
+sum(anemonef[,1])
+
+## Mean generality of species in the network
+# Why only columns without zero sum are considered? Certainly because they're
+# not considered part of the network (they have no connection to anyone)
+# Maybe would be more precise to exclude if they have no connection to anyone ELSE
+Generality <- function(M){
+  return(sum(colSums(M))/sum((colSums(M)!=0)));
+}
+
+#Vulnerability of F1
+sum(anemonef[1,])
+
+# Is Vulnerability a good name?
+
+## Mean vulnerability of the species in the network
+Vulnerability <- function(M){
+  return(sum(rowSums(M))/sum((rowSums(M)!=0)));
+}
+
+## In-degree or number of prey of all species in the network
+InDegree <- function(M){
+  return(colSums(M));
+}
+
+## Out-degree or number of predators of all species in the network
+OutDegree <- function(M){
+  return(rowSums(M));
+}
+
+## Standard deviation of generality:
+# The generality is being normalized by L/S
+SDGenerality <- function(M){
+  return(sd(colSums(M) / (sum(M)/dim(M)[1]) ));
+}
+
+## Standard deviation of vulnerability:
+# The vulnerability is being normalized by L/S
+SDVulnerability <- function(M){
+  return(sd(rowSums(M) / (sum(M)/dim(M)[1]) ));
+}
+
+## Fraction of basal species
+FractionOfBasal <- function(M){
+  M_temp <- M;
+  diag(M_temp) <- 0;
+  
+  b_sps <- sum(which(InDegree(M_temp) == 0) %in% which(OutDegree(M_temp) >= 1));
+  
+  return(b_sps / dim(M)[1]);
+}
+
+## Fraction of top predator species
+FractionOfTop <- function(M){
+  M_temp <- M;
+  diag(M_temp) <- 0;
+  
+  t_sps <- sum(which(InDegree(M_temp) >= 1) %in% which(OutDegree(M_temp) == 0));
+  
+  return(t_sps / dim(M)[1]);
+}
+
+## Fraction of intermediate consumer species
+FractionOfIntermediate <- function(M){
+  M_temp <- M;
+  diag(M_temp) <- 0;
+  
+  i_sps <- sum(which(InDegree(M_temp) >= 1) %in% which(OutDegree(M_temp) >= 1));
+  
+  return(i_sps / dim(M)[1]);
+}
+
+gen <- Generality(benguela.AM)
+vul <- Vulnerability(benguela.AM)
+sdgen <- SDGenerality(benguela.AM)
+sdvul <- SDVulnerability(benguela.AM)
+B <- FractionOfBasal(benguela.AM)
+I <- FractionOfIntermediate(benguela.AM)
+T <- FractionOfTop(benguela.AM)
+
+
+
